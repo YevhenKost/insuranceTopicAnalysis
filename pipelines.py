@@ -4,17 +4,22 @@ from lda_utils import LDA
 
 class Docs2Topics:
 
-    @classmethod
-    def get_topics(cls, texts, feature_extraction_args, lda_args):
+    def __init__(self, feature_extraction_args, lda_args):
+        self.feature_extractor = FeatureExtraction(**feature_extraction_args)
+        # self.preprocessor = Preprocessing()
+        self.lda_model = LDA(**lda_args)
 
-        texts = Preprocessing.preprocess_batch(texts)
-        feature_extractor = FeatureExtraction(**feature_extraction_args)
-        features = feature_extractor.fit_transform(texts)
-        feature_index_dict = feature_extractor.feature_index_dict
+    def get_topics(self, texts):
 
-        lda_model = LDA(**lda_args)
-        lda_model.fit(features, feature_index_dict)
-        topics = lda_model.extracted_topics
+        # texts = self.preprocessor.preprocess_batch(texts)
+        features = self.feature_extractor.fit_transform(texts)
+        feature_index_dict = self.feature_extractor.feature_index_dict
+
+        print("Vocabulary Length: ", len(feature_index_dict))
+
+
+        self.lda_model.fit(features, feature_index_dict)
+        topics = self.lda_model.extracted_topics
 
         return topics
 

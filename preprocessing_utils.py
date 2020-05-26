@@ -1,32 +1,26 @@
 from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from stemmer import UkrainianStemmer
+import stanza
 
 class Preprocessing:
 
-    @classmethod
-    def _tokenize(cls, text):
-        return word_tokenize(text)
+    def __init__(self):
 
-    @classmethod
-    def _preprocess_token(cls, token):
+        self.stanford_pipeline = stanza.Pipeline("uk", use_gpu=True)
 
-        token = token.lower()
-        token = token.strip()
-        token = UkrainianStemmer(token).stem_word()
+    def preprocess_text(self, text):
 
-        return token
+        doc = self.stanford_pipeline(text)
 
-    @classmethod
-    def preprocess_text(cls, text):
+        lemmatized_output = []
+        for s in doc.sentences:
+            for t in s.words:
+                lemmatized_output.append(t.lemma)
+        return lemmatized_output
 
-        tokens = cls._tokenize(text)
-        tokens = list(map(cls._preprocess_token, tokens))
-        return tokens
-
-    @classmethod
-    def preprocess_batch(cls, texts):
-        return list(map(cls.preprocess_text, texts))
+    def preprocess_batch(self, texts):
+        return list(map(self.preprocess_text, texts))
 
 class FeatureExtraction:
 
