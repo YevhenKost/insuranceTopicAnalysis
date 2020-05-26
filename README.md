@@ -36,25 +36,25 @@ texts = """Зродились ми великої години
 Соборна Українська держава –
 Вільна й міцна, від Сяну по Кавказ""".split("\n")
 
-    feature_extraction_args = {"max_df":1.0,
-                               "min_df":0,
-                               "stop_words":[],
+feature_extraction_args = {"max_df":1.0,
+                           "min_df":0,
+                           "stop_words":[],
 
-                               # keep defaults
-                               "analyzer":"word",
-                               "tokenizer":None,
-                               "lowcase":False}
+                           # keep defaults
+                           "analyzer":"word",
+                           "tokenizer":None,
+                           "lowcase":False}
 
-    lda_args = {"n_topics": 2,
-                "max_iter": 10,
-                "n_jobs": -1,
+lda_args = {"n_topics": 2,
+            "max_iter": 10,
+            "n_jobs": -1,
 
-                # Note: thold is more prior than n_topic_words
-                # But works slower
-                "n_topic_words": 4,
-                "word_thold": None}
+            # Note: thold is more prior than n_topic_words
+            # But works slower
+            "n_topic_words": 4,
+            "word_thold": None}
 
-    topics = Docs2Topics.get_topics(texts, feature_extraction_args, lda_args)
+topics = Docs2Topics.get_topics(texts, feature_extraction_args, lda_args)
 ```
 
 It provides output: 
