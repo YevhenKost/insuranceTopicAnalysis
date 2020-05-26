@@ -5,6 +5,7 @@ Repository contains code regarding LDA Analysis of insurance related news
 ```python
 
 from pipelines import Docs2Topics
+from preprocessing_utils import Preprocessing
 
 texts = """Зродились ми великої години
 З пожеж війни, із полум’я вогнів,
@@ -34,7 +35,7 @@ texts = """Зродились ми великої години
 Веде нас в бій борців упавших слава.
 Для нас закон найвищий – то приказ:
 Соборна Українська держава –
-Вільна й міцна, від Сяну по Кавказ""".split("\n")
+Вільна й міцна, від Сяну по Кавказ"""
 
 feature_extraction_args = {"max_df":1.0,
                            "min_df":0,
@@ -54,17 +55,21 @@ lda_args = {"n_topics": 2,
             "n_topic_words": 4,
             "word_thold": None}
 
-topics = Docs2Topics.get_topics(texts, feature_extraction_args, lda_args)
+preprocessing_pipeline = Preprocessing()
+doc2topic = Docs2Topics(feature_extraction_args, lda_args)
+
+preprocessed_text = preprocessing_pipeline.preprocess_batch(texts)
+topics = doc2topic.get_topics(preprocessed_text)
 ```
 
 It provides output: 
 ```python
-{0: [(',', 0.01992596015018256),
-     ('велик', 0.01615288636099073),
-     ('свобод', 0.01593267663712953),
-     ('бо', 0.015625739990102007)],
- 1: [(',', 0.026545867700971584),
-     ('–', 0.02237089104273583),
-     ('нас', 0.018479716599540626),
-     ('.', 0.01700120425530488)]}
+{0: [(',', 0.009193804823965581),
+     ('ми', 0.009181293571095492),
+     ('.', 0.009160791355235289),
+     ('–', 0.00915213723975985)],
+ 1: [(',', 0.018401715777324638),
+     ('ми', 0.014509728716192957),
+     ('.', 0.011925993263786154),
+     ('–', 0.011283228533043869)]}
 ```
