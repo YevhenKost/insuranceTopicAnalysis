@@ -58,7 +58,7 @@ lda_args = {"n_topics": 2,
 preprocessing_pipeline = Preprocessing()
 doc2topic = Docs2Topics(feature_extraction_args, lda_args)
 
-preprocessed_text = preprocessing_pipeline.preprocess_batch(texts)
+preprocessed_text = preprocessing_pipeline.preprocess_batch([texts])
 topics = doc2topic.get_topics(preprocessed_text)
 ```
 
