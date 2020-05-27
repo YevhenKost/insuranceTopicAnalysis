@@ -1,5 +1,10 @@
 from sklearn.decomposition import NMF, LatentDirichletAllocation
 import numpy as np
+from gensim.models import CoherenceModel
+from itertools import combinations
+from fasttext import load_model
+from sklearn.metrics.pairwise import cosine_similarity
+
 
 class LDA:
 
@@ -8,8 +13,10 @@ class LDA:
         self.extracted_topics = {}
         self.topic_num_words = n_topic_words
         self.thold = word_thold
+        self.coherence_score = 0
+        self.extracted_topics_words = []
 
-    def fit(self, features, feature_index_dict=None):
+    def fit(self, features, feature_index_dict):
         self.model.fit(features)
         self._update_topics(feature_index_dict)
 
@@ -23,12 +30,61 @@ class LDA:
             else:
                 self.extracted_topics[topic_idx] = [(feature_index_dict[i], topic[i])
                                                     for i in topic if i >= self.thold]
+        self.extracted_topics_words = []
+        for top_probs in self.extracted_topics.values():
+            self.extracted_topics_words.append([x[0] for x in top_probs])
+
+
+class TopicNumEvaluation:
+
+    def __init__(self, fasttext_path=r"D:\fasstText_models\ukrainian\cc.uk.300.bin"):
+
+        self.w2v_model = load_model(fasttext_path)
+
+
+    def calculate_topic_coherence(self, topic_words):
+
+        # check each pair of terms
+        pair_scores = []
+
+        embedded_tokens = [self.w2v_model.get_word_vector(x) for x in topic_words]
+
+        for pair in combinations(list(range(len(topic_words))), 2):
+
+            w1 = embedded_tokens[pair[0]].reshape(1,-1)
+            w2 = embedded_tokens[pair[1]].reshape(1, -1)
+            pair_scores.append(cosine_similarity(w1, w2).item())
+
+        # get the mean for all pairs in this topic
+        topic_score = sum(pair_scores) / len(pair_scores)
+
+        return topic_score
+
+    def calculate_model_coherence(self, topics):
+
+        scores = []
+        for topic in topics:
+            scores.append(self.calculate_topic_coherence(topic))
+
+        return np.mean(scores)
 
 if __name__ == '__main__':
 
-    import numpy as np
+    import os
+    import pandas as pd
+    from tqdm import tqdm
 
-    model = LatentDirichletAllocation()
-    model.fit(np.random.randint(0,100, (10, 20)))
-    c = model.components_/model.components_.sum(axis=1)[:, np.newaxis]
-    print()
+    top_gen, top_axa = {}, {}
+    ev = TopicNumEvaluation()
+
+    for t in tqdm(os.listdir("grid_topics_minToken5")):
+        df = pd.read_csv(os.path.join("grid_topics_minToken5", t))
+        topics = df["topics"].apply(lambda x: [y[0] for y in x]).values.tolist()
+
+        sc = ev.calculate_model_coherence(topics)
+        if "gen_" in t:
+            top_gen[t] = sc
+        if "axa_" in t:
+            top_axa[t] = sc
+    print(sorted(top_gen.items(), key=lambda x: x[1]))
+    print(sorted(top_axa.items(), key=lambda x: x[1]))

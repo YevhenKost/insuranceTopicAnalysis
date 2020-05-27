@@ -1,6 +1,4 @@
-from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
-from stemmer import UkrainianStemmer
 import stanza
 
 class Preprocessing:

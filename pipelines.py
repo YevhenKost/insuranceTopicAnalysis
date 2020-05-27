@@ -19,54 +19,57 @@ class Docs2Topics:
 
 
         self.lda_model.fit(features, feature_index_dict)
-        topics = self.lda_model.extracted_topics
+        topics_with_probs = self.lda_model.extracted_topics
+        topics_words = self.lda_model.extracted_topics_words
 
-        return topics
+        return topics_with_probs, topics_words
 
 
 if __name__ == '__main__':
+    # from pipelines import Docs2Topics
+    from preprocessing_utils import Preprocessing
 
     texts = """Зродились ми великої години
-З пожеж війни, із полум’я вогнів,
-Плекав нас біль по втраті України,
-Кормив нас гнів і злість на ворогів.
+    З пожеж війни, із полум’я вогнів,
+    Плекав нас біль по втраті України,
+    Кормив нас гнів і злість на ворогів.
 
-І ось ми йдем у бою життєвому –
-Тверді, міцні, незламні, мов граніт,
-Бо плач не дав свободи ще нікому,
-А хто борець, той здобуває світ.
+    І ось ми йдем у бою життєвому –
+    Тверді, міцні, незламні, мов граніт,
+    Бо плач не дав свободи ще нікому,
+    А хто борець, той здобуває світ.
 
-Не хочемо ні слави, ні заплати.
-Заплатою нам – розкіш боротьби!
-Солодше нам у бою умирати,
-Ніж жити в путах, мов німі раби.
+    Не хочемо ні слави, ні заплати.
+    Заплатою нам – розкіш боротьби!
+    Солодше нам у бою умирати,
+    Ніж жити в путах, мов німі раби.
 
-Доволі нам руїни і незгоди,
-Не сміє брат на брата йти у бій!
-Під синьо-жовтим прапором свободи
-З’єднаєм весь великий нарід свій.
+    Доволі нам руїни і незгоди,
+    Не сміє брат на брата йти у бій!
+    Під синьо-жовтим прапором свободи
+    З’єднаєм весь великий нарід свій.
 
-Велику правду – для усіх єдину,
-Наш гордий клич народові несе!
-Вітчизні ти будь вірний до загину,
-Нам Україна вище понад усе!
+    Велику правду – для усіх єдину,
+    Наш гордий клич народові несе!
+    Вітчизні ти будь вірний до загину,
+    Нам Україна вище понад усе!
 
-Веде нас в бій борців упавших слава.
-Для нас закон найвищий – то приказ:
-Соборна Українська держава –
-Вільна й міцна, від Сяну по Кавказ""".split("\n")
+    Веде нас в бій борців упавших слава.
+    Для нас закон найвищий – то приказ:
+    Соборна Українська держава –
+    Вільна й міцна, від Сяну по Кавказ"""
 
-    feature_extraction_args = {"max_df":1.0,
-                               "min_df":0,
-                               "stop_words":[],
+    feature_extraction_args = {"max_df": 1.0,
+                               "min_df": 0,
+                               "stop_words": [],
 
                                # keep defaults
-                               "analyzer":"word",
-                               "tokenizer":None,
-                               "lowcase":False}
+                               "analyzer": "word",
+                               "tokenizer": None,
+                               "lowcase": False}
 
     lda_args = {"n_topics": 2,
-                "max_iter": 10,
+                "max_iter": 1,
                 "n_jobs": -1,
 
                 # Note: thold is more prior than n_topic_words
@@ -74,10 +77,16 @@ if __name__ == '__main__':
                 "n_topic_words": 4,
                 "word_thold": None}
 
-    topics = Docs2Topics.get_topics(texts, feature_extraction_args, lda_args)
+    preprocessing_pipeline = Preprocessing()
+    doc2topic = Docs2Topics(feature_extraction_args, lda_args)
 
-    # import pprint
-    # pprint.pprint(topics)
+    preprocessed_text = preprocessing_pipeline.preprocess_batch([texts])
+    topics, coh_score = doc2topic.get_topics(preprocessed_text)
+
+
+
+    import pprint
+    pprint.pprint(topics)
     # {0: [(',', 0.01992596015018256),
     #      ('велик', 0.01615288636099073),
     #      ('свобод', 0.01593267663712953),
@@ -86,3 +95,5 @@ if __name__ == '__main__':
     #      ('–', 0.02237089104273583),
     #      ('нас', 0.018479716599540626),
     #      ('.', 0.01700120425530488)]}
+    print(coh_score)
+
