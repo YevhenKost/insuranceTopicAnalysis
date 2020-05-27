@@ -59,11 +59,13 @@ preprocessing_pipeline = Preprocessing()
 doc2topic = Docs2Topics(feature_extraction_args, lda_args)
 
 preprocessed_text = preprocessing_pipeline.preprocess_batch([texts])
-topics = doc2topic.get_topics(preprocessed_text)
+topics, words_per_topic = doc2topic.get_topics(preprocessed_text)
 ```
 
 It provides output: 
 ```python
+
+# topics
 {0: [(',', 0.009193804823965581),
      ('ми', 0.009181293571095492),
      ('.', 0.009160791355235289),
@@ -72,4 +74,8 @@ It provides output:
      ('ми', 0.014509728716192957),
      ('.', 0.011925993263786154),
      ('–', 0.011283228533043869)]}
+
+# words_per_topic
+[[',', 'ми', '.', '–'], [',', 'ми', '.', '–']]
+
 ```
