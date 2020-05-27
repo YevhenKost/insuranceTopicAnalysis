@@ -17,6 +17,7 @@ class Preprocessing:
         for s in doc.sentences:
             for t in s.words:
                 lemmatized_output.append(t.lemma)
+        del doc
         return lemmatized_output
 
     def preprocess_batch(self, texts):

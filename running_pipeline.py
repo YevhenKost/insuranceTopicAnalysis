@@ -1,18 +1,10 @@
 from pipelines import Docs2Topics
-import pandas as pd
 from tqdm import tqdm
 import json
 import pprint
 import os
 from preprocessing_utils import Preprocessing
 
-df = pd.read_pickle("Dataset.pkl")
-
-df["is_general"] = df["from"].apply(lambda x: "general" in x)
-df["is_axa"] = df["from"].apply(lambda x: "axa" in x)
-
-axa_texts = df[df["is_axa"] == True]["translated"].values.tolist()
-gen_texts = df[df["is_general"] == True]["translated"].values.tolist()
 
 
 num_topics_range = [5, 10, 20, 30, 40, 50]
@@ -20,16 +12,6 @@ max_df_range = [0.4, 0.5, 0.6, 0.7, 0.8]
 
 save_dir = "grid_topics"
 os.makedirs(save_dir, exist_ok=True)
-
-preprocessing_pipeline = Preprocessing()
-print("start preprocessing")
-preprocessed_texts_axa = preprocessing_pipeline.preprocess_batch(axa_texts)
-print("done axa")
-preprocessed_texts_gen = preprocessing_pipeline.preprocess_batch(gen_texts)
-print("done gen")
-
-with open("preprocessed_data.json", "w") as f:
-    json.dump({"axa":preprocessed_texts_axa, "gen":preprocessed_texts_gen}, f)
 
 
 
