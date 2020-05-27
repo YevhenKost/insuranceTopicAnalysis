@@ -3,9 +3,7 @@ from tqdm import tqdm
 import json
 import pprint
 import os
-from preprocessing_utils import Preprocessing
-
-
+import pandas as pd
 
 num_topics_range = [5, 10, 20, 30, 40, 50]
 max_df_range = [0.4, 0.5, 0.6, 0.7, 0.8]
@@ -14,8 +12,15 @@ save_dir = "grid_topics"
 os.makedirs(save_dir, exist_ok=True)
 
 
+df = pd.read_pickle("Dataset_with_lemmas_04cut.pkl")
+df["is_general"] = df["from"].apply(lambda x: "general" in x)
+df["is_axa"] = df["from"].apply(lambda x: "axa" in x)
 
-for n_topics in tqdm(num_topics_range[::-1]):
+axa_texts = df[df["is_axa"] == True]["lemmas"].values.tolist()
+gen_texts = df[df["is_general"] == True]["lemmas"].values.tolist()
+
+
+for n_topics in tqdm(num_topics_range):
     for mdf in max_df_range:
 
         print(n_topics, mdf)

@@ -18,7 +18,7 @@ class LDA:
         for topic_idx, topic in enumerate(self.model.components_/self.model.components_.sum(axis=1)[:, np.newaxis]):
 
             if not self.thold:
-                self.extracted_topics[topic_idx] = [(feature_index_dict[i], topic[i])
+                self.extracted_topics[topic_idx] = [(str(feature_index_dict[i]), topic[i])
                                  for i in topic.argsort()[:-self.topic_num_words - 1:-1]]
             else:
                 self.extracted_topics[topic_idx] = [(feature_index_dict[i], topic[i])
