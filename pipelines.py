@@ -1,4 +1,4 @@
-from preprocessing_utils import Preprocessing, FeatureExtraction
+from preprocessing_utils import FeatureExtraction
 from lda_utils import LDA
 
 
@@ -6,12 +6,10 @@ class Docs2Topics:
 
     def __init__(self, feature_extraction_args, lda_args):
         self.feature_extractor = FeatureExtraction(**feature_extraction_args)
-        # self.preprocessor = Preprocessing()
         self.lda_model = LDA(**lda_args)
 
-    def get_topics(self, texts):
+    def fit_get_topics(self, texts):
 
-        # texts = self.preprocessor.preprocess_batch(texts)
         features = self.feature_extractor.fit_transform(texts)
         feature_index_dict = self.feature_extractor.feature_index_dict
 
@@ -23,6 +21,10 @@ class Docs2Topics:
         topics_words = self.lda_model.extracted_topics_words
 
         return topics_with_probs, topics_words
+
+    def predict_topics(self, texts):
+        features = self.feature_extractor.transform(texts)
+        return self.lda_model.transform(features)
 
 
 if __name__ == '__main__':
@@ -81,19 +83,11 @@ if __name__ == '__main__':
     doc2topic = Docs2Topics(feature_extraction_args, lda_args)
 
     preprocessed_text = preprocessing_pipeline.preprocess_batch([texts])
-    topics, coh_score = doc2topic.get_topics(preprocessed_text)
+    topics, words_per_topic = doc2topic.fit_get_topics(preprocessed_text)
 
 
 
     import pprint
     pprint.pprint(topics)
-    # {0: [(',', 0.01992596015018256),
-    #      ('велик', 0.01615288636099073),
-    #      ('свобод', 0.01593267663712953),
-    #      ('бо', 0.015625739990102007)],
-    #  1: [(',', 0.026545867700971584),
-    #      ('–', 0.02237089104273583),
-    #      ('нас', 0.018479716599540626),
-    #      ('.', 0.01700120425530488)]}
-    print(coh_score)
+    print(words_per_topic)
 

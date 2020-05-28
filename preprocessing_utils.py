@@ -40,6 +40,9 @@ class FeatureExtraction:
         self._update_feature_index_dict(self.tf_idf.vocabulary_)
         return features
 
+    def transform(self, tokenized_texts):
+        return self.tf_idf.transform(tokenized_texts)
+
     def _update_feature_index_dict(self, vocabulary_tfifd):
         self.feature_index_dict = {v:k for k,v in vocabulary_tfifd.items()}
 

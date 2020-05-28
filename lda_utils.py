@@ -1,6 +1,5 @@
-from sklearn.decomposition import NMF, LatentDirichletAllocation
+from sklearn.decomposition import LatentDirichletAllocation
 import numpy as np
-from gensim.models import CoherenceModel
 from itertools import combinations
 from fasttext import load_model
 from sklearn.metrics.pairwise import cosine_similarity
@@ -33,6 +32,9 @@ class LDA:
         self.extracted_topics_words = []
         for top_probs in self.extracted_topics.values():
             self.extracted_topics_words.append([x[0] for x in top_probs])
+
+    def transform(self, texts):
+        return self.model.transform(texts)
 
 
 class TopicNumEvaluation:
