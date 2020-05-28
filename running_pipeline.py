@@ -97,7 +97,11 @@ def calcualte_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
                     'Страхование грузов и багажа', 'Страхование здоровья на случай болезни',
                     'Страхование имущества', 'Страхование туристов (медрасходов)', 'Страховые выплаты',
                     'Страховые премии', 'Страховые резервы', 'Уровень выплат', 'Чистые страховые премии'],
-                   save_dir_summary=""):
+                   save_dir_summary="",
+                   cor_method="pearson"):
+
+    if save_dir_summary:
+        os.makedirs(save_dir_summary, exist_ok=True)
 
     # reading data and loading lemmatized texts
     df = pd.read_pickle(df_path)
@@ -157,8 +161,8 @@ def calcualte_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
 
     summary_df = summary_df[topic_cols + rating_cols]
     summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}__summary.csv"))
-    corr_summary_df = summary_df.corr()[topic_cols].iloc[len(topic_cols):]
-    corr_summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}__summaryCORR.csv"))
+    corr_summary_df = summary_df.corr(method=cor_method)[topic_cols].iloc[len(topic_cols):]
+    corr_summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}_corrMet{cor_method}__summaryCORR.csv"))
 
     # plotting corr
     f = plt.figure(figsize=(15, 15))
@@ -179,4 +183,4 @@ def calcualte_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
 
 
 if __name__ == '__main__':
-    calcualte_corr()
+    calcualte_corr(cor_method="spearman")
