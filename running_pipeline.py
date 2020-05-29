@@ -192,8 +192,9 @@ def get_top_corrs(corr_df, n=10):
     all_values = corr_df.values
     corr_abs = abs(all_values)
     all_values = abs(all_values.reshape(-1))
+    all_values = all_values[~np.isnan(all_values)]
     all_values.sort()
-    max_values = all_values[:n]
+    max_values = all_values[::-1]
 
     output = {}
 
