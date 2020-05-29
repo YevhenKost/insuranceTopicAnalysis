@@ -3,7 +3,7 @@ import numpy as np
 from itertools import combinations
 from fasttext import load_model
 from sklearn.metrics.pairwise import cosine_similarity
-
+import pandas as pd
 
 class LDA:
 
@@ -36,6 +36,12 @@ class LDA:
     def transform(self, texts):
         return self.model.transform(texts)
 
+    def to_csv(self, path):
+        df = pd.DataFrame()
+        for i, t_words in enumerate(self.extracted_topics_words):
+
+            df[f"topic_{i}"] = t_words
+        df.to_csv(path)
 
 class TopicNumEvaluation:
 
