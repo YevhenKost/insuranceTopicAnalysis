@@ -1,7 +1,6 @@
 from pipelines import Docs2Topics
 from tqdm import tqdm
 import json
-import pprint
 import os
 import pandas as pd
 from lda_utils import TopicNumEvaluation
@@ -166,12 +165,14 @@ def calcualte_save_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
     summary_df = summary_df[topic_cols + rating_cols]
     summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}__summary.csv"))
     corr_summary_df = summary_df.corr(method=cor_method)[topic_cols].iloc[len(topic_cols):]
+
     corr_summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}_corrMet{cor_method}__summaryCORR.csv"))
     most_correlated = get_top_corrs(corr_summary_df, n_most_correlated)
+
     d2t.lda_model.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}_corrMet{cor_method}__TOPICS.csv"))
 
-    with open(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}_corrMet{cor_method}__top{n_most_correlated}.json"), "w") as f:
-        json.dump(most_correlated, f)
+    with open(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}_corrMet{cor_method}__top{n_most_correlated}.json"), "w", encoding='utf-8') as f:
+        json.dump(most_correlated, f, ensure_ascii=False)
 
     # plotting corr
     f = plt.figure(figsize=(15, 15))
@@ -188,7 +189,7 @@ def calcualte_save_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
 
 def get_top_corrs(corr_df, n=10):
 
-    all_values = np.array([x[1:] for x in corr_df.values.tolist()])
+    all_values = corr_df.values
     corr_abs = abs(all_values)
     all_values = abs(all_values.reshape(-1))
     all_values.sort()
@@ -197,8 +198,9 @@ def get_top_corrs(corr_df, n=10):
     output = {}
 
 
-    row_names = corr_df.iloc[:,0].values.tolist()
-    col_names = list(corr_df.columns[1:])
+    row_names = list(corr_df.index)
+    # row_names = [translit(x, "uk", reversed=True).unicode("utf8") for x in row_names]
+    col_names = list(corr_df.columns)
 
     for max_v in max_values:
 
@@ -206,7 +208,7 @@ def get_top_corrs(corr_df, n=10):
         row_index = index[0][0]
         col_index = index[1][0]
 
-        output[f"{row_names[row_index]} AND {col_names[col_index]}"] = corr_df.iloc[row_index, col_index+1]
+        output[f"{row_names[row_index]} AND {col_names[col_index]}"] = corr_df.iloc[row_index, col_index]
 
 
     return output
