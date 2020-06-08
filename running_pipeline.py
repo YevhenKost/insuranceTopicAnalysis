@@ -7,7 +7,9 @@ from lda_utils import TopicNumEvaluation
 import scipy.stats as ss
 import numpy as np
 import matplotlib.pyplot as plt
-
+from sklearn.linear_model import LogisticRegression
+from pprint import pprint
+from sklearn.metrics import classification_report
 
 def grid_search(save_dir = "grid_topics_minToken5_"):
     num_topics_range = [20, 30, 40, 50, 60, 70]
@@ -109,7 +111,8 @@ def calcualte_save_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
     df = pd.read_pickle(df_path)
     df["lemmas"] = df["lemmas"].apply(lambda x: [t for t in x if len(t) >= 5])
     df[f"is_{news_type}"] = df["from"].apply(lambda x: news_type in x)
-    lemmatized_texts = df[df[f"is_{news_type}"] == True]["lemmas"].values.tolist()
+    df = df[df[f"is_{news_type}"] == True]
+    lemmatized_texts = df["lemmas"].values.tolist()
 
     # init parameters and models
     lda_args = {"n_topics": n_topics,
@@ -137,15 +140,18 @@ def calcualte_save_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
     print("Fitted LDA")
     # calculating probs and ranks for each topic in texts
     # merging in dataframe
-    topics_probs = d2t.predict_topics(lemmatized_texts)
+    topics_probs = d2t.predict_topics(lemmatized_texts).transpose()
     topic_cols = [f"topic_{i}" for i in range(len(word_topics))]
-    prob_topic_df = pd.DataFrame(topics_probs, columns=topic_cols)
-    rating_df = df[rating_cols + split_by].join(prob_topic_df)
+    # prob_topic_df = pd.DataFrame(topics_probs, columns=topic_cols)
+    rating_df = df[rating_cols + split_by]
+    for i, topic_col in enumerate(topic_cols):
+        rating_df[topic_col] = topics_probs[i]
 
     print("Predicted topics")
 
     # for each split calculating sum of probs for each topic and calculating rank
     summary_df = []
+    periods = []
     for p, period_df in rating_df.groupby(split_by):
 
         summ_topics_probs = period_df[topic_cols].sum(axis=0).values
@@ -156,6 +162,7 @@ def calcualte_save_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
         ranks_topics[" ".join(split_by)] = p
 
         summary_df.append(ranks_topics)
+        periods.append((p[0] - 1)*0.25 + p[1])
 
     # calculating corrs
     print("Starting Corr")
@@ -163,7 +170,9 @@ def calcualte_save_corr(df_path="Dataset_with_lemmas_04cut_rating.pkl",
 
     # saving results
     summary_df = summary_df[topic_cols + rating_cols]
+    summary_df["time"] = periods
     summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}__summary.csv"))
+    del summary_df["time"]
     corr_summary_df = summary_df.corr(method=cor_method)[topic_cols].iloc[len(topic_cols):]
 
     corr_summary_df.to_csv(os.path.join(save_dir_summary, f"Ntop{n_topics}_TypE{news_type}_maxdf{max_df}_corrMet{cor_method}__summaryCORR.csv"))
@@ -216,18 +225,88 @@ def get_top_corrs(corr_df, n=10):
 
 
 
+def fit_eval_RankLogReg(
+        most_correllated_json = r"C:\Users\jekos\Desktop\Research\insTopic\insuranceTopicAnalysis\general_summary\Ntop60_TypEgeneral_maxdf0.6_corrMetspearman__top10.json",
+        summary_df_path = r"C:\Users\jekos\Desktop\Research\insTopic\insuranceTopicAnalysis\general_summary\Ntop60_TypEgeneral_maxdf0.6__summary.csv",
+        save_dir="",
+        time_col = "time",
+        n_test = 3
+       ):
+
+    summary_df = pd.read_csv(summary_df_path).dropna()
+    summary_df = summary_df.sort_values(by=time_col)
+
+    def _get_model_input(topic_measurement, ratio_values):
+
+        topics_features = topic_measurement[:-1]
+        targets = []
+        for prev_r, next_r in zip(ratio_values[:-1],ratio_values[1:]):
+            if next_r >= prev_r:
+                targets.append(1)
+            else:
+                targets.append(0)
+
+        return topics_features, targets
+
+
+    with open(most_correllated_json, "r", encoding='utf-8') as f:
+        most_correllated_rates = json.load(f)
+
+    rating_cols = [x for x in most_correllated_rates.keys()]
+    topics = [x.split(" AND ")[1] for x in rating_cols]
+    rating_cols = [x.split(" AND ")[0] for x in rating_cols]
+
+    for i in range(len(topics)):
+
+        topics_features, targets = _get_model_input(
+            summary_df[topics[i]].values,
+            summary_df[rating_cols[i]].values,
+        )
+
+        if len(np.unique(targets[:n_test])) > 1:
+
+            train_features = topics_features[:n_test].reshape(-1, 1)
+            test_features = topics_features[-n_test:].reshape(-1, 1)
+
+            train_targets = targets[:n_test]
+            test_targets = targets[-n_test:]
+
+            model_ = LogisticRegression(random_state=2).fit(train_features, train_targets)
+            print(topics[i], rating_cols[i])
+            pprint(
+                classification_report(y_true=test_targets,
+                                      y_pred=model_.predict(test_features))
+            )
+            print('\n')
+        else:
+            continue
+
+
+    # return summary_df
+
 
 
 
 
 if __name__ == '__main__':
-    calcualte_save_corr(max_df=0.7,
-                   n_topics=30,
-                   news_type="news_axa",
-                   save_dir_summary="axa_summary")
-    calcualte_save_corr(max_df=0.6,
-                   n_topics=60,
-                   news_type="general",
-                   save_dir_summary="general_summary")
+    # calcualte_save_corr(max_df=0.7,
+    #                n_topics=30,
+    #                news_type="news_axa",
+    #                save_dir_summary="axa_summary",
+    #                     n_most_correlated=30
+    #                     )
+    # calcualte_save_corr(max_df=0.6,
+    #                n_topics=60,
+    #                news_type="general",
+    #                     # save_dir_summary=""
+    #                save_dir_summary="general_summary",
+    #                     n_most_correlated=30
+    #                     )
     # grid_search(save_dir = "iterations_grid")
     # print((get_top_corrs(pd.read_csv(r"C:\Users\jekos\Desktop\Research\insTopic\insuranceTopicAnalysis\Ntop60_TypEgeneral_maxdf0.6_corrMetspearman__summaryCORR.csv"))))
+
+    fit_eval_RankLogReg(
+        most_correllated_json = r"C:\Users\jekos\Desktop\Research\insTopic\insuranceTopicAnalysis\general_summary\Ntop60_TypEgeneral_maxdf0.6_corrMetspearman__top30.json",
+        summary_df_path=r"C:\Users\jekos\Desktop\Research\insTopic\insuranceTopicAnalysis\general_summary\Ntop60_TypEgeneral_maxdf0.6__summary.csv",
+        n_test=7
+    )
