@@ -7,35 +7,19 @@ Repository contains code regarding LDA Analysis of insurance related news
 from pipelines import Docs2Topics
 from preprocessing_utils import Preprocessing
 
-texts = """Зродились ми великої години
-З пожеж війни, із полум’я вогнів,
-Плекав нас біль по втраті України,
-Кормив нас гнів і злість на ворогів.
-
-І ось ми йдем у бою життєвому –
-Тверді, міцні, незламні, мов граніт,
-Бо плач не дав свободи ще нікому,
-А хто борець, той здобуває світ.
-
-Не хочемо ні слави, ні заплати.
-Заплатою нам – розкіш боротьби!
-Солодше нам у бою умирати,
-Ніж жити в путах, мов німі раби.
-
-Доволі нам руїни і незгоди,
-Не сміє брат на брата йти у бій!
-Під синьо-жовтим прапором свободи
-З’єднаєм весь великий нарід свій.
-
-Велику правду – для усіх єдину,
-Наш гордий клич народові несе!
-Вітчизні ти будь вірний до загину,
-Нам Україна вище понад усе!
-
-Веде нас в бій борців упавших слава.
-Для нас закон найвищий – то приказ:
-Соборна Українська держава –
-Вільна й міцна, від Сяну по Кавказ"""
+texts = """To be, or not to be, that is the question:
+          Whether 'tis nobler in the mind to suffer
+          The slings and arrows of outrageous fortune,
+          Or to take Arms against a Sea of troubles,
+          And by opposing end them: to die, to sleep;
+          No more; and by a sleep, to say we end
+          The heart-ache, and the thousand natural shocks
+          That Flesh is heir to? 'Tis a consummation
+          Devoutly to be wished. To die, to sleep,
+          To sleep, perchance to Dream; aye, there's the rub,
+          For in that sleep of death, what dreams may come,
+          When we have shuffled off this mortal coil,
+          Must give us pause."""
 
 feature_extraction_args = {"max_df":1.0,
                            "min_df":0,
@@ -66,16 +50,16 @@ It provides output:
 ```python
 
 # topics
-{0: [(',', 0.009193804823965581),
-     ('ми', 0.009181293571095492),
-     ('.', 0.009160791355235289),
-     ('–', 0.00915213723975985)],
- 1: [(',', 0.018401715777324638),
-     ('ми', 0.014509728716192957),
-     ('.', 0.011925993263786154),
-     ('–', 0.011283228533043869)]}
+{0: [(',', 0.014686180021571887),
+     ('to', 0.014184309385795015),
+     ('sleep', 0.013349824349856078),
+     ('the', 0.013255000918955656)],
+ 1: [(',', 0.023162549551458914),
+     ('to', 0.018766991048079128),
+     ('sleep', 0.0146796338376476),
+     ('the', 0.013795378848642228)]}
 
 # words_per_topic
-[[',', 'ми', '.', '–'], [',', 'ми', '.', '–']]
+[[',', 'to', 'sleep', 'the'], [',', 'to', 'sleep', 'the']]
 
 ```
